@@ -20,7 +20,7 @@ Type exit to leave the chatroom.
 
 🎥 Demo Video
 
-📺 Click (https://drive.google.com/file/d/1-8ba_iT9nOPa2AlPL-8XLL4w_CPawTaR/view?usp=drive_link)
+📺 Click (https://drive.google.com/file/d/1-8ba_iT9nOPa2AlPL-8XLL4w_CPawTaR/view?usp=sharing)
  to watch the demo.
 
 🧠 Notes
@@ -30,3 +30,4 @@ Built for Assignment 2 – Simple Chatroom project.
 Uses Go’s net package for socket communication.
 
 Chat history is stored in memory and displayed for new users.
+
