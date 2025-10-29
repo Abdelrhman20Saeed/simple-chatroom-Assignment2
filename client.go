@@ -3,40 +3,59 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"os"
+	"strings"
+	"time"
 )
 
-func main() {
-	
-	conn, err := net.Dial("tcp", "localhost:8080")
-	if err != nil {
-		fmt.Println("Error connecting to server:", err)
-		return
+func connectToServer() net.Conn {
+	for {
+		conn, err := net.Dial("tcp", "127.0.0.1:8080")
+		if err != nil {
+			log.Println("⚠️ Can't connect to server, retrying in 2s...")
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		log.Println("✅ Connected to server!")
+		return conn
 	}
+}
+
+func main() {
+	conn := connectToServer()
 	defer conn.Close()
 
-	fmt.Println("Connected to server. Type your message:")
+	reader := bufio.NewReader(os.Stdin)
+	serverReader := bufio.NewReader(conn)
+
+	
+	go func() {
+		for {
+			message, err := serverReader.ReadString('\n')
+			if err != nil {
+				log.Println("❌ Disconnected from server, reconnecting...")
+				conn = connectToServer()
+				serverReader = bufio.NewReader(conn)
+				continue
+			}
+			fmt.Print(message)
+		}
+	}()
 
 	
 	for {
-		fmt.Print(">> ")
-		reader := bufio.NewReader(os.Stdin)
-		message, _ := reader.ReadString('\n')
-
-		_, err := conn.Write([]byte(message))
-		if err != nil {
-			fmt.Println("Error sending message:", err)
+		textRaw, _ := reader.ReadString('\n')
+		text := strings.TrimSpace(textRaw)
+		if text == "" {
+			continue
+		}
+		if text == "exit" {
+			fmt.Println("👋 Exiting chat...")
+			conn.Write([]byte(text + "\n"))
 			return
 		}
-
-		
-		reply := make([]byte, 1024)
-		n, err := conn.Read(reply)
-		if err != nil {
-			fmt.Println("Server disconnected.")
-			return
-		}
-		fmt.Println("Server:", string(reply[:n]))
+		conn.Write([]byte(text + "\n"))
 	}
 }
